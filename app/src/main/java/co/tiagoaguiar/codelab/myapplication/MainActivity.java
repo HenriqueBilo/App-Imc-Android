@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -37,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 		// mosaic
 		// grid
 		// linear (horizontal | vertical)
-		rvMain.setLayoutManager(new LinearLayoutManager(this));
+		rvMain.setLayoutManager(new GridLayoutManager(this, 2));
 
 		MainAdapter adapter = new MainAdapter(mainItems);
 		rvMain.setAdapter(adapter);
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 		public void bind(MainItem item){
 			TextView txtName = itemView.findViewById(R.id.item_txt_name);
 			ImageView imgIcon = itemView.findViewById(R.id.item_img_icon);
-			LinearLayout container = (LinearLayout) itemView; //Para trocar o background do container
+			LinearLayout container = (LinearLayout) itemView.findViewById(R.id.btn_imc); //Para trocar o background do container
 
 			txtName.setText(item.getTextStringId());
 			imgIcon.setImageResource(item.getDrawableId());
