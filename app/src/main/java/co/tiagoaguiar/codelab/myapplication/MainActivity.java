@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
 		rvMain.setAdapter(adapter);
 
 	}
-	
+
 	private class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainViewHolder>{
 
 		private List<MainItem> mainItems;
