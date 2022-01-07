@@ -87,6 +87,7 @@ public class ImcActivity extends AppCompatActivity {
             imm.hideSoftInputFromWindow(editWeight.getWindowToken(), 0);
             imm.hideSoftInputFromWindow(editHeight.getWindowToken(), 0);
         });
+
     }
 
     //Para abrir o menu superior direito
