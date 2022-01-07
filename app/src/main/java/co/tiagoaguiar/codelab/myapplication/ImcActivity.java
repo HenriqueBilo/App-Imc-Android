@@ -63,8 +63,24 @@ public class ImcActivity extends AppCompatActivity {
                     })
                     .setNegativeButton(R.string.save, ((dialogInterface, i) -> {
 
+                        SqlHelper sqlHelper = SqlHelper.getInstance(ImcActivity.this);
+
                         new Thread(() -> {
-                            long calcId = SqlHelper.getInstance(ImcActivity.this).addItem("imc", result);
+
+                            int updateId = 0;
+
+                            // verifica se tem ID vindo da tela anterior quando é UPDATE
+                            if (getIntent().getExtras() != null)
+                                updateId = getIntent().getExtras().getInt("updateId", 0);
+
+                            long calcId;
+
+                            // verifica se é update ou create
+                            if (updateId > 0) {
+                                calcId = sqlHelper.updateItem("imc", imcResponseId, updateId);
+                            } else {
+                                calcId = sqlHelper.addItem("imc", imcResponseId);
+                            }
 
                             //Retorna para Thread Principal
                             runOnUiThread(() -> {

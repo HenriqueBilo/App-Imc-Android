@@ -4,10 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -56,8 +58,23 @@ public class TmbActivity extends AppCompatActivity {
                     })
                     .setNegativeButton(R.string.save, ((dialogInterface, i) -> {
 
+                        SqlHelper sqlHelper = SqlHelper.getInstance(TmbActivity.this);
+
                         new Thread(() -> {
-                            long calcId = SqlHelper.getInstance(TmbActivity.this).addItem("tmb", tmbResponseId);
+                            int updateId = 0;
+
+                            // verifica se tem ID vindo da tela anterior quando é UPDATE
+                            if (getIntent().getExtras() != null)
+                                updateId = getIntent().getExtras().getInt("updateId", 0);
+
+                            long calcId;
+
+                            // verifica se é update ou create
+                            if (updateId > 0) {
+                                calcId = sqlHelper.updateItem("tmb", tmbResponseId, updateId);
+                            } else {
+                                calcId = sqlHelper.addItem("tmb", tmbResponseId);
+                            }
 
                             //Retorna para Thread Principal
                             runOnUiThread(() -> {
@@ -75,6 +92,13 @@ public class TmbActivity extends AppCompatActivity {
             dialog.show();
 
         });
+
+        //Esconde o teclado
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        //Da hide nos dois pois não sabemos qual input o usuário clicou
+        imm.hideSoftInputFromWindow(editWeight.getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(editHeight.getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(editAge.getWindowToken(), 0);
 
     }
 

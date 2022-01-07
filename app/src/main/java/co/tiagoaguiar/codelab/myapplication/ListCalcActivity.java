@@ -1,16 +1,20 @@
 package co.tiagoaguiar.codelab.myapplication;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Dialog;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -50,7 +54,7 @@ public class ListCalcActivity extends AppCompatActivity {
         }
     }
 
-    private class ListCalcAdapter extends RecyclerView.Adapter<ListCalcAdapter.ListCalcViewHolder> {
+    private class ListCalcAdapter extends RecyclerView.Adapter<ListCalcAdapter.ListCalcViewHolder> implements OnAdapterItemClickListener{
 
         private List<Register> registers;
 
@@ -67,12 +71,59 @@ public class ListCalcActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull ListCalcViewHolder holder, int position) {
             Register data = registers.get(position);
-            holder.bind(data);
+
+            // listener para ouvir evento de click e de long-click (segurar touch)
+            holder.bind(data, this);
         }
 
         @Override
         public int getItemCount() {
             return registers.size();
+        }
+
+        @Override
+        public void onClick(int id, String type) {
+            switch(type){
+                case "imc":
+                    Intent intentImc = new Intent(ListCalcActivity.this, ImcActivity.class);
+                    intentImc.putExtra("updateId", id);
+                    startActivity(intentImc);
+                    break;
+                case "tmb":
+                    Intent intentTmb = new Intent(ListCalcActivity.this, TmbActivity.class);
+                    intentTmb.putExtra("updateId", id);
+                    startActivity(intentTmb);
+                    break;
+            }
+        }
+
+        @Override
+        public void onLongClick(int position, String type, int id) {
+            AlertDialog dialog = new AlertDialog.Builder(ListCalcActivity.this)
+                    .setTitle("Exclusão de registro")
+                    .setMessage("Deseja excluir esse registro?") //getString(R.string.tmb_response, tmbResponseId)
+                    .setPositiveButton(android.R.string.ok, (dialogInterface, i) -> {
+
+                        new Thread(() -> {
+                            Boolean deleteItem = SqlHelper.getInstance(ListCalcActivity.this).removeItem(id);
+
+                            //Retorna para Thread Principal
+                            runOnUiThread(() -> {
+                                if (deleteItem) {
+                                    Toast.makeText(ListCalcActivity.this, R.string.calc_removed, Toast.LENGTH_SHORT).show();
+                                    registers.remove(position);
+                                    notifyDataSetChanged();
+                                }
+
+                            });
+                        }).start();
+
+                    })
+                    .setNegativeButton(R.string.cancel, ((dialogInterface, i) -> {
+
+                    })).create();
+
+            dialog.show();
         }
 
         private class ListCalcViewHolder extends RecyclerView.ViewHolder {
@@ -81,7 +132,7 @@ public class ListCalcActivity extends AppCompatActivity {
                 super(itemView);
             }
 
-            public void bind(Register data){
+            public void bind(Register data, final OnAdapterItemClickListener onItemListener){
                 String formatted = "";
                 try {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", new Locale("pt", "BR"));
@@ -95,6 +146,18 @@ public class ListCalcActivity extends AppCompatActivity {
                 ((TextView) itemView).setText(
                         getString(R.string.list_response, data.response, formatted)
                 );
+
+                //onClick para efetuar a alteração de registros
+                itemView.setOnClickListener(view -> {
+                    onItemListener.onClick(data.id, data.type);
+                });
+
+                //Long click para efetuar a exclusão de registros
+                itemView.setOnLongClickListener(view -> {
+                    onItemListener.onLongClick(getAdapterPosition(), data.type, data.id);
+                    return false;
+                });
+
             }
         }
     }
